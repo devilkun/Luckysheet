@@ -5052,6 +5052,118 @@ export const companyTargetData = `区域	分公司	销售目标(万元)
 中心区	大连	550
 省会	海南	170
 `
+export const companyTargetData10 = `区域	分公司	销售目标(万元)
+中心区	青岛	2360
+北区	内蒙古	400
+中心区	佛山	450
+北区	安徽	1810
+北区	河北	2210
+中心区	北京	2160
+省会	青海	40
+南区	福建	1200
+南区	浙江	2060
+南区	江西	2660
+南区	湖南	1460
+中心区	天津	750
+北区	山东	7280
+中心区	深圳	1410
+省会	陕西	1000
+北区	辽宁	2210
+中心区	上海	1000
+南区	江苏	2760
+北区	黑龙江	5720
+南区	广西	1100
+省会	新疆	600
+北区	河南	2710
+省会	四川	7330
+南区	湖北	5170
+北区	吉林	1560
+省会	重庆	1610
+中心区	苏州	2060
+中心区	宁波	500
+省会	云南	1960
+省会	贵州	600
+北区	山西	1660
+南区	广东	3060
+省会	甘肃	450
+中心区	大连	550
+省会	海南	170
+`
+export const companyTargetData11 = `区域	分公司	销售目标(万元)
+中心区	青岛	3240
+北区	内蒙古	1280
+中心区	佛山	1330
+北区	安徽	2690
+北区	河北	3090
+中心区	北京	3040
+省会	青海	920
+南区	福建	2080
+南区	浙江	2940
+南区	江西	3540
+南区	湖南	2340
+中心区	天津	1630
+北区	山东	8160
+中心区	深圳	2290
+省会	陕西	1880
+北区	辽宁	3090
+中心区	上海	1880
+南区	江苏	3640
+北区	黑龙江	6600
+南区	广西	1980
+省会	新疆	1480
+北区	河南	3590
+省会	四川	8210
+南区	湖北	6050
+北区	吉林	2440
+省会	重庆	2490
+中心区	苏州	2940
+中心区	宁波	1380
+省会	云南	2840
+省会	贵州	1480
+北区	山西	2540
+南区	广东	3940
+省会	甘肃	1330
+中心区	大连	1430
+省会	海南	1050
+
+`
+export const companyTargetData12 = `区域	分公司	销售目标(万元)
+中心区	青岛	4760
+北区	内蒙古	2800
+中心区	佛山	2850
+北区	安徽	4210
+北区	河北	4610
+中心区	北京	4560
+省会	青海	2440
+南区	福建	3600
+南区	浙江	4460
+南区	江西	5060
+南区	湖南	3860
+中心区	天津	3150
+北区	山东	9680
+中心区	深圳	3810
+省会	陕西	3400
+北区	辽宁	4610
+中心区	上海	3400
+南区	江苏	5160
+北区	黑龙江	8120
+南区	广西	3500
+省会	新疆	3000
+北区	河南	5110
+省会	四川	9730
+南区	湖北	7570
+北区	吉林	3960
+省会	重庆	4010
+中心区	苏州	4460
+中心区	宁波	2900
+省会	云南	4360
+省会	贵州	3000
+北区	山西	4060
+南区	广东	5460
+省会	甘肃	2850
+中心区	大连	2950
+省会	海南	2570
+`
 
 
 export function excelToLuckyArray(excelData) {
@@ -5180,7 +5292,7 @@ export function addSalesTargetToTable(table, salesTargetData) {
     return table;
 }
 
-// 汇总所有区域数据
+// 汇总所有区域数据，带分公司
 export function summary(data) {
     // 获取需要汇总的列数
     const colCount = data[0].length - 1;
@@ -5188,6 +5300,26 @@ export function summary(data) {
     // 计算汇总数据
     const summaryRow = [{ v: "" }, { v: "合计" }, { v: "" }];
     for (let i = 3; i <= colCount; i++) {
+        let sum = 0;
+        for (let j = 1; j < data.length; j++) {
+            sum += parseInt(data[j][i]['v']) || 0;
+        }
+        summaryRow.push({ "v": parseInt(sum) || 0 });
+    }
+
+    // 插入汇总数据到第二行
+    data.splice(1, 0, summaryRow);
+    return data
+}
+
+// 汇总所有区域数据，不带分公司
+export function summaryAll(data) {
+    // 获取需要汇总的列数
+    const colCount = data[0].length - 1;
+
+    // 计算汇总数据
+    const summaryRow = [{ v: "" }, { v: "合计" }];
+    for (let i = 2; i <= colCount; i++) {
         let sum = 0;
         for (let j = 1; j < data.length; j++) {
             sum += parseInt(data[j][i]['v']) || 0;
@@ -5270,10 +5402,28 @@ export function askAIData(data, salesTargetData) {
 
     let resultTable = pivotTable(data, config)
     resultTable = sortTable(resultTable)
-    resultTable = addSalesTargetToTable(resultTable, salesTargetData); // 添加“销售目标”列
-    resultTable = summary(resultTable)
-    resultTable = summaryArea(resultTable)
-    resultTable = targetRate(resultTable)
+
+    let saleTarget = false
+    // 只有分公司才能执行vlookup查询
+    if(resultTable[0][1].v === '分公司'){
+        saleTarget = true
+        resultTable = addSalesTargetToTable(resultTable, salesTargetData); // 添加“销售目标”列
+    }
+    if(saleTarget){
+
+        resultTable = summary(resultTable)
+    }else{
+        resultTable = summaryAll(resultTable)
+    }
+    
+    if(saleTarget){
+        resultTable = summaryArea(resultTable)
+        resultTable = targetRate(resultTable)
+    }
+
+    if(!saleTarget && resultTable[0] && resultTable[0][4] && resultTable[0][4].v === '客户数'){
+        resultTable[0][4].v = '销售员人数'
+    }
     return resultTable
 }
 

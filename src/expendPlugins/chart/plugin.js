@@ -37,7 +37,8 @@ const dependLinks = [
 ];
 
 // Initialize the chart component
-function chart(data, isDemo) {
+function chart(options, config, isDemo) {
+    const data = options.data;
     loadLinks(dependLinks);
 
     seriesLoadScripts(dependScripts, null, function() {
@@ -1130,7 +1131,7 @@ function createLuckyChart(width, height, left, top) {
         rangeTxt,
     );
     // chartInfo.currentChart = chart_json.chartOptions
-    console.dir(JSON.stringify(chart_json));
+    // console.dir(JSON.stringify(chart_json));
 
     width = width ? width : 400;
     height = height ? height : 250;

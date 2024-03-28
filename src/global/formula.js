@@ -744,6 +744,11 @@ const luckysheetformula = {
             rangetxt = txt;
         }
 
+        // fix =VLOOKUP(D9,数据透视表!A:D,2,0)
+        if(sheetdata == null){
+            return null
+        }
+
         if (rangetxt.indexOf(":") == -1) {
             let row = parseInt(rangetxt.replace(/[^0-9]/g, "")) - 1;
             let col = ABCatNum(rangetxt.replace(/[^A-Za-z]/g, ""));
@@ -4250,6 +4255,20 @@ const luckysheetformula = {
                             }
                         }
 
+                        // 修复类似=1--1、=1---1、=1+--+1--1这类连续+-混合写法计算结果和wps和office不一致的bug, by @kdevilpf 2023-10-08
+                        for (ls = i + 1; ls < funcstack.length; ls++) {
+                            if (["--", "++"].includes(s + funcstack[ls])) {
+                                s = "+";
+                            } else if (["-+", "+-"].includes(s + funcstack[ls])) {
+                                s = "-";
+                            } else {
+                                if (ls > i + 1) {
+                                    i = ls - 1;
+                                }
+                                break;
+                            }
+                        }
+
                         cal1.unshift(s);
 
                         function_str = "";
@@ -5995,7 +6014,7 @@ const luckysheetformula = {
                     let funcgStr = funcg[i].split("')")[0];
                     let funcgRange = _this.getcellrange(funcgStr);
 
-                    if (funcgRange.row[0] < 0 || funcgRange.column[0] < 0) {
+                    if (!funcgRange || funcgRange.row[0] < 0 || funcgRange.column[0] < 0) {
                         return [true, _this.error.r, txt];
                     }
 
